@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Check</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --primary-color: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.4);
+            --danger-color: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.4);
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            padding: 3rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 90%;
+            max-width: 400px;
+            transition: all 0.4s ease;
+        }
+
+        h1 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            font-size: 2rem;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        .status-indicator {
+            height: 8px;
+            width: 8px;
+            background-color: #64748b;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 0 0 rgba(100, 116, 139, 0);
+            transition: all 0.3s ease;
+        }
+
+        .status-wrapper {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .active .status-indicator {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px 2px var(--primary-glow);
+            animation: pulse 2s infinite;
+        }
+
+        .active .status-text {
+            color: var(--primary-color);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 var(--primary-glow);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(56, 189, 248, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+            }
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn svg {
+            width: 48px;
+            height: 48px;
+            fill: var(--text-color);
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn:hover svg {
+            transform: scale(1.1);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .control-btn.is-repeating {
+            border-color: var(--danger-color);
+        }
+
+        .control-btn.is-repeating svg {
+            fill: var(--danger-color);
+        }
+
+        .control-btn.is-repeating::before {
+            background: radial-gradient(circle, var(--danger-glow) 0%, transparent 70%);
+            opacity: 1;
+        }
+
+        .control-btn.is-repeating:hover {
+            box-shadow: 0 0 20px var(--danger-glow);
+        }
+
+        /* Ripple effect for recording state */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--primary-color);
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .is-repeating .ripple {
+            animation: ripple-anim 2s linear infinite;
+            border-color: var(--danger-color);
+        }
+
+        @keyframes ripple-anim {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .controls-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .delay-info {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 80%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            transition: opacity .2s;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-glow);
+            border: 2px solid var(--bg-color);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-glow);
+            border: 2px solid var(--bg-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="status-wrapper" id="statusWrapper">
+            <div class="status-indicator"></div>
+            <span class="status-text" id="statusText">Ready for Vibe Check</span>
+        </div>
+
+        <h1>Vibe Check</h1>
+
+        <button class="control-btn" id="toggleBtn" aria-label="Start Vibe Check">
+            <!-- Play Icon -->
+            <svg id="playIcon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+            </svg>
+            <!-- Stop Icon -->
+            <svg id="stopIcon" viewBox="0 0 24 24" style="display: none;">
+                <path d="M6 6h12v12H6z" />
+            </svg>
+            <div class="ripple"></div>
+        </button>
+
+        <div class="controls-container">
+            <div class="delay-info">Delay: <span id="delayValue">2.0</span>s</div>
+            <input type="range" id="delaySlider" min="0.1" max="5.0" step="0.1" value="2.0">
+        </div>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('toggleBtn');
+        const playIcon = document.getElementById('playIcon');
+        const stopIcon = document.getElementById('stopIcon');
+        const statusWrapper = document.getElementById('statusWrapper');
+        const statusText = document.getElementById('statusText');
+        const delaySlider = document.getElementById('delaySlider');
+        const delayValue = document.getElementById('delayValue');
+
+        let audioContext = null;
+        let mediaStream = null;
+        let sourceNode = null;
+        let delayNode = null;
+        let isRepeating = false;
+
+        // Update display on slider move
+        delaySlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value).toFixed(1);
+            delayValue.textContent = val;
+
+            // Real-time update if active
+            if (delayNode && audioContext) {
+                // Smooth transition to avoid artifacts
+                delayNode.delayTime.linearRampToValueAtTime(parseFloat(val), audioContext.currentTime + 0.1);
+            }
+        });
+
+        async function startRepeating() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                sourceNode = audioContext.createMediaStreamSource(mediaStream);
+                delayNode = audioContext.createDelay(5.0); // Max delay possible
+
+                // Set initial delay from slider
+                const currentDelay = parseFloat(delaySlider.value);
+                delayNode.delayTime.value = currentDelay;
+
+                sourceNode.connect(delayNode);
+                delayNode.connect(audioContext.destination);
+
+                isRepeating = true;
+                updateUI(true);
+
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Mic access denied. We need your vibe to check it!');
+                stopRepeating();
+            }
+        }
+
+        function stopRepeating() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+
+            if (sourceNode) {
+                sourceNode.disconnect();
+                sourceNode = null;
+            }
+
+            if (delayNode) {
+                delayNode.disconnect();
+                delayNode = null;
+            }
+
+            isRepeating = false;
+            updateUI(false);
+        }
+
+        function updateUI(active) {
+            if (active) {
+                toggleBtn.classList.add('is-repeating');
+                playIcon.style.display = 'none';
+                stopIcon.style.display = 'block';
+                statusWrapper.classList.add('active');
+                statusText.textContent = 'Vibing...';
+                toggleBtn.ariaLabel = "Stop Vibe Check";
+            } else {
+                toggleBtn.classList.remove('is-repeating');
+                playIcon.style.display = 'block';
+                stopIcon.style.display = 'none';
+                statusWrapper.classList.remove('active');
+                statusText.textContent = 'Ready for Vibe Check';
+                toggleBtn.ariaLabel = "Start Vibe Check";
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (isRepeating) {
+                stopRepeating();
+            } else {
+                startRepeating();
+            }
+        });
+    </script>
+</body>
+
+</html>
